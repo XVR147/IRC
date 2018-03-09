@@ -16,7 +16,7 @@ public class Client extends JFrame implements Runnable {
     // The client socket
 
 
-    public static boolean flag=true;
+    public static boolean flag = true;
     public static String ret;
     private static Container c;
     private static JPanel chat = new JPanel();
@@ -31,6 +31,10 @@ public class Client extends JFrame implements Runnable {
     private static JList usersList;
     private static DefaultListModel usersModel;
     private static JScrollPane usersScroll = new JScrollPane(usersList);
+    private static ListSelectionModel model;
+
+    private static int firstIndex = -1;
+    private static int lastIndex = 0;
 
     private static JButton invia = new JButton("Invia");
     private static JTextField msg = new JTextField(20);
@@ -38,20 +42,17 @@ public class Client extends JFrame implements Runnable {
     private static JLabel L_Utenti = new JLabel("   Utenti attivi   ");
 
 
-
-
     // The default port.
 
 
-    public Client(){
+    public Client() {
 
         super("iRC");
         new Autenticazione();
-        while(flag)
-        {
+        while (flag) {
             System.out.print("");
         }
-        p=ret;
+        p = ret;
         c = this.getContentPane();
         c.setLayout(new BorderLayout());
         chatText.setText("<html></html>");
@@ -67,18 +68,33 @@ public class Client extends JFrame implements Runnable {
         for (int j = 0; j < 25; j++) {
             usersModel.add(j, null);
         }
+
         usersList = new JList(usersModel);
         usersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        usersList.setVisibleRowCount(150);
-        usersList.addListSelectionListener(new ListSelectionListener() {
-                                               @Override
-                                               public void valueChanged(ListSelectionEvent e) {
-                                                   String x = (String) usersList.getSelectedValue();
-                                                   msg.setText("/w [" + x + "] ");
-                                               }
-                                           }
-        );
+        usersList.setLayoutOrientation(JList.VERTICAL);
+        model = usersList.getSelectionModel();
+        ListSelectionListener change = new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
 
+                int[] x = new int[25];
+
+                if (e.getValueIsAdjusting())
+                    return;
+                lastIndex = e.getLastIndex();
+                System.out.println("Indice selezionato: " + lastIndex + "- Ultimo selezionato: " + firstIndex);
+                if (lastIndex != firstIndex) {
+                    firstIndex = -1;
+                    System.out.println("First index: " + firstIndex);
+                    msg.setText("/w [" + utenti[lastIndex] + "] ");
+                    ((ListSelectionModel) e.getSource()).clearSelection();
+                } else {
+
+                }
+            }
+        };
+
+        model.addListSelectionListener(change);
 
         usersScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         usersScroll.setLayout(new ScrollPaneLayout());
@@ -154,7 +170,6 @@ public class Client extends JFrame implements Runnable {
         setVisible(true);
 
 
-
     }
 
     /*
@@ -183,40 +198,32 @@ public class Client extends JFrame implements Runnable {
 
     }
 
-    public void input(String x){
-        if(x.equals("0"))
-        {
-            String m="Errore";
-            try
-            {m = Main.is.readLine();}
-            catch(Exception d)
-            {
+    public void input(String x) {
+        if (x.equals("0")) {
+            String m = "Errore";
+            try {
+                m = Main.is.readLine();
+            } catch (Exception d) {
 
             }
-            String actual = chatText.getText().substring(0, chatText.getText().length()-7);
-            chatText.setText(actual+m+"<br></html>");
-        }
-        else if(x.equals("1"))
-        {
-            String m="Errore";
-            try
-            {
-                m=Main.is.readLine();
-            }
-            catch(Exception d)
-            {
+            String actual = chatText.getText().substring(0, chatText.getText().length() - 7);
+            chatText.setText(actual + m + "<br></html>");
+        } else if (x.equals("1")) {
+            String m = "Errore";
+            try {
+                m = Main.is.readLine();
+            } catch (Exception d) {
 
             }
-            String actual = chatText.getText().substring(0, chatText.getText().length()-7);
-            chatText.setText(actual+m+"<br></html>");
-        } else if(x.startsWith("&^") && x.endsWith("^&"))
-        {
+            String actual = chatText.getText().substring(0, chatText.getText().length() - 7);
+            chatText.setText(actual + m + "<br></html>");
+        } else if (x.startsWith("&^") && x.endsWith("^&")) {
             updateUsersList(x);
         }
         return;
     }
 
-    static public void output(){
+    static public void output() {
         String send = msg.getText();
         msg.setText("");
         Main.os.println("0");
@@ -225,18 +232,22 @@ public class Client extends JFrame implements Runnable {
         Main.os.flush();
 
     }
-    static public void updateUsersList(String x){
-        String temp = x.substring(2,(x.length())-3);
-        utenti = temp.split(":");
-        System.out.println(java.util.Arrays.toString(utenti));
 
+    static public void updateUsersList(String x) {
+        String temp = x.substring(2, (x.length()) - 3);
+
+        utenti = temp.split(":");
+
+        System.out.println(java.util.Arrays.toString(utenti));
         usersModel.clear();
-        for(int i = 0; i < utenti.length;i++){
-            usersModel.add(i,utenti[i]);
+        for (int i = 0; i <= utenti.length-1; i++) {
+            usersModel.add(i, utenti[i]);
         }
+
         usersList = new JList(usersModel);
 
     }
+
     private class ListenerSend implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String color = "";
@@ -248,8 +259,7 @@ public class Client extends JFrame implements Runnable {
             String mex2 = "";
             String user = "";
             String mex = msg.getText();
-            if(!mex.equals(""))
-            {
+            if (!mex.equals("")) {
                 Boolean cmd = false;
                 Boolean err = false;
                 if (mex.length() > 3) {
@@ -280,10 +290,10 @@ public class Client extends JFrame implements Runnable {
                 // } else if (err)
                 //   chatText.setText(chatText.getText().substring(0, chatText.getText().length() - 7) + "<span color=\"#ff0000\">" + mex + "</span><br/></html>");
                 chatScroll.getViewport().setViewPosition(new Point(0, chatText.getHeight()));
-                if(!cmd)
+                if (!cmd)
                     output();
-                else if(!err)
-                    send(mex2,user);
+                else if (!err)
+                    send(mex2, user);
                 msg.setText("");
             }
         }
