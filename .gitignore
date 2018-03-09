@@ -3,4 +3,5 @@
 out
 # IML files #
 *.iml
-
+# Local TXT database #
+db.txt
