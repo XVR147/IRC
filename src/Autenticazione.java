@@ -1,12 +1,8 @@
 
 import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.text.StyledEditorKit;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.*;
 
 public class Autenticazione extends JFrame{
 
